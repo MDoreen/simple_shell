@@ -12,3 +12,41 @@ void sig_handler(int sig_num)
 }
 
 
+/**
+ *main - main program for the shell project
+ *
+ *Return: 0
+ */
+int main(void)
+{
+	int bufsize = BUFFER_LEN, i;
+	char **argvv;
+	char *line;
+	struct stat sfile;
+
+	signal(SIGINT, sig_handler);
+	while (1)
+	{
+		if (isatty(STDIN_FILENO) == 1)
+			write(STDOUT_FILENO, "$ ", 2);
+
+		line = read_line();
+
+		argvv = split_line(line, bufsize);
+		if (!argvv || argvv[0] == NULL)
+		{
+			exec_command(argvv);
+		}
+		else
+		{
+			i = check_builtin(argvv[0]);
+			if (i >= 0)
+				builtins(argvv, i);
+			else
+			{
+				if (stat(argvv[0], &sfile) != 0)
+				{
+					argvv[0] = find_path(argvv[0]);
+				}
+
+
