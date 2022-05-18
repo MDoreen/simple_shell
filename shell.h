@@ -1,6 +1,12 @@
 #ifndef _SHELL_H_
 #define _SHELL_H_
 
+/*
+ * File: shell.h
+ * Authors: Martin Karanja
+ *         Doreen Machoni
+ */
+
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -14,6 +20,12 @@
 #define END_OF_FILE -2
 #define EXIT -3
 
+/* Global environemnt */
+extern char **environ;
+/* Global program name */
+char;
+/* Global history counter */
+int;
 /**
  * struct list_s - A new struct type defining a linked list.
  * @dir: A directory path.
@@ -125,4 +137,4 @@ void help_unsetenv(void);
 void help_history(void);
 
 int proc_file_commands(char *file_path, int *exe_ret);
-#endif /* _SHELL_H_ */
+#endif /* _SHELL_H_ */i
