@@ -49,4 +49,12 @@ int main(void)
 					argvv[0] = find_path(argvv[0]);
 				}
 
+				exec_command(argvv);
+			}
+		}
+		free(argvv);
+	}
+	return (0);
+}
+
 
