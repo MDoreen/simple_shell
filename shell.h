@@ -23,9 +23,7 @@
 /* Global environemnt */
 extern char **environ;
 /* Global program name */
-char;
 /* Global history counter */
-int;
 /**
  * struct list_s - A new struct type defining a linked list.
  * @dir: A directory path.
@@ -137,4 +135,4 @@ void help_unsetenv(void);
 void help_history(void);
 
 int proc_file_commands(char *file_path, int *exe_ret);
-#endif /* _SHELL_H_ */i
+#endif /* _SHELL_H_ */
