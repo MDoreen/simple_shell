@@ -1,101 +1,133 @@
 #include "shell.h"
 
-void help_all(void);
-void help_alias(void);
-void help_cd(void);
-void help_exit(void);
-void help_help(void);
+int shellby_env(char **args, char __attribute__((__unused__)) **front);
+int shellby_setenv(char **args, char __attribute__((__unused__)) **front);
+int shellby_unsetenv(char **args, char __attribute__((__unused__)) **front);
 
 /**
- * help_all - Displays all possible builtin shellby commands.
+ * shellby_env - Prints the current environment.
+ * @args: An array of arguments passed to the shell.
+ * @front: A double pointer to the beginning of args.
+ *
+ * Return: If an error occurs - -1.
+ *	   Otherwise - 0.
+ *
+ * Description: Prints one variable per line in the
+ *              format 'variable'='value'.
  */
-void help_all(void)
+int shellby_env(char **args, char __attribute__((__unused__)) **front)
 {
-	char *msg = "Shellby\nThese shell commands are defined internally.\n";
+	int index;
+	char nc = '\n';
 
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "Type 'help' to see this list.\nType 'help name' to find ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "out more about the function 'name'.\n\n  alias   \t";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "alias [NAME[='VALUE'] ...]\n  cd    \tcd   ";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "[DIRECTORY]\n  exit    \texit [STATUS]\n  env     \tenv";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "\n  setenv  \tsetenv [VARIABLE] [VALUE]\n  unsetenv\t";
-	write(STDOUT_FILENO, msg, _strlen(msg));
-	msg = "unsetenv [VARIABLE]\n";
-	write(STDOUT_FILENO, msg, _strlen(msg));
+	if (!environ)
+		return (-1);
+
+	for (index = 0; environ[index]; index++)
+	{
+		write(STDOUT_FILENO, environ[index], _strlen(environ[index]));
+		write(STDOUT_FILENO, &nc, 1);
+	}
+
+	(void)args;
+	return (0);
 }
 
 /**
- * help_alias - Displays information on the shellby builtin command 'alias'.
+ * shellby_setenv - Changes or adds an environmental variable to the PATH.
+ * @args: An array of arguments passed to the shell.
+ * @front: A double pointer to the beginning of args.
+ * Description: args[1] is the name of the new or existing PATH variable.
+ *              args[2] is the value to set the new or changed variable to.
+ *
+ * Return: If an error occurs - -1.
+ *         Otherwise - 0.
  */
-void help_alias(void)
+int shellby_setenv(char **args, char __attribute__((__unused__)) **front)
 {
-		char *msg = "alias: alias [NAME[='VALUE'] ...]\n\tHandles aliases.\n";
+	char **env_var = NULL, **new_environ, *new_value;
+	size_t size;
+	int index;
 
-			write(STDOUT_FILENO, msg, _strlen(msg));
-				msg = "\n\talias: Prints a list of all aliases, one per line, in ";
-					write(STDOUT_FILENO, msg, _strlen(msg));
-						msg = "the format NAME='VALUE'.\n\talias name [name2 ...]:prints";
-							write(STDOUT_FILENO, msg, _strlen(msg));
-								msg = " the aliases name, name2, etc. one per line, in the ";
-									write(STDOUT_FILENO, msg, _strlen(msg));
-										msg = "form NAME='VALUE'.\n\talias NAME='VALUE' [...]: Defines";
-											write(STDOUT_FILENO, msg, _strlen(msg));
-												msg = " an alias for each NAME whose VALUE is given. If NAME ";
-													write(STDOUT_FILENO, msg, _strlen(msg));
-														msg = "is already an alias, replace its value with VALUE.\n";
-															write(STDOUT_FILENO, msg, _strlen(msg));
+	if (!args[0] || !args[1])
+		return (create_error(args, -1));
+
+	new_value = malloc(_strlen(args[0]) + 1 + _strlen(args[1]) + 1);
+	if (!new_value)
+		return (create_error(args, -1));
+	_strcpy(new_value, args[0]);
+	_strcat(new_value, "=");
+	_strcat(new_value, args[1]);
+
+	env_var = _getenv(args[0]);
+	if (env_var)
+	{
+		free(*env_var);
+		*env_var = new_value;
+		return (0);
+	}
+	for (size = 0; environ[size]; size++)
+		;
+
+	new_environ = malloc(sizeof(char *) * (size + 2));
+	if (!new_environ)
+	{
+		free(new_value);
+		return (create_error(args, -1));
+	}
+
+	for (index = 0; environ[index]; index++)
+		new_environ[index] = environ[index];
+
+	free(environ);
+	environ = new_environ;
+	environ[index] = new_value;
+	environ[index + 1] = NULL;
+
+	return (0);
 }
 
 /**
- *  * help_cd - Displays information on the shellby builtin command 'cd'.
- *   */
-void help_cd(void)
+ * shellby_unsetenv - Deletes an environmental variable from the PATH.
+ * @args: An array of arguments passed to the shell.
+ * @front: A double pointer to the beginning of args.
+ * Description: args[1] is the PATH variable to remove.
+ *
+ * Return: If an error occurs - -1.
+ *         Otherwise - 0.
+ */
+int shellby_unsetenv(char **args, char __attribute__((__unused__)) **front)
 {
-		char *msg = "cd: cd [DIRECTORY]\n\tChanges the current directory of the";
+	char **env_var, **new_environ;
+	size_t size;
+	int index, index2;
 
-			write(STDOUT_FILENO, msg, _strlen(msg));
-				msg = " process to DIRECTORY.\n\n\tIf no argument is given, the ";
-					write(STDOUT_FILENO, msg, _strlen(msg));
-						msg = "command is interpreted as cd $HOME. If the argument '-' is";
-							write(STDOUT_FILENO, msg, _strlen(msg));
-								msg = " given, the command is interpreted as cd $OLDPWD.\n\n";
-									write(STDOUT_FILENO, msg, _strlen(msg));
-										msg = "\tThe environment variables PWD and OLDPWD are updated ";
-											write(STDOUT_FILENO, msg, _strlen(msg));
-												msg = "after a change of directory.\n";
-													write(STDOUT_FILENO, msg, _strlen(msg));
-}
+	if (!args[0])
+		return (create_error(args, -1));
+	env_var = _getenv(args[0]);
+	if (!env_var)
+		return (0);
 
-/**
- *  * help_exit - Displays information on the shellby builtin command 'exit'.
- *   */
-void help_exit(void)
-{
-		char *msg = "exit: exit [STATUS]\n\tExits the shell.\n\n\tThe ";
+	for (size = 0; environ[size]; size++)
+		;
 
-			write(STDOUT_FILENO, msg, _strlen(msg));
-				msg = "STATUS argument is the integer used to exit the shell.";
-					write(STDOUT_FILENO, msg, _strlen(msg));
-						msg = " If no argument is given, the command is interpreted as";
-							write(STDOUT_FILENO, msg, _strlen(msg));
-								msg = " exit 0.\n";
-									write(STDOUT_FILENO, msg, _strlen(msg));
-}
+	new_environ = malloc(sizeof(char *) * size);
+	if (!new_environ)
+		return (create_error(args, -1));
 
-/**
- *  * help_help - Displays information on the shellby builtin command 'help'.
- *   */
-void help_help(void)
-{
-		char *msg = "help: help\n\tSee all possible Shellby builtin commands.\n";
+	for (index = 0, index2 = 0; environ[index]; index++)
+	{
+		if (*env_var == environ[index])
+		{
+			free(*env_var);
+			continue;
+		}
+		new_environ[index2] = environ[index];
+		index2++;
+	}
+	free(environ);
+	environ = new_environ;
+	environ[size - 1] = NULL;
 
-			write(STDOUT_FILENO, msg, _strlen(msg));
-				msg = "\n      help [BUILTIN NAME]\n\tSee specific information on each ";
-					write(STDOUT_FILENO, msg, _strlen(msg));
-						msg = "builtin command.\n";
-							write(STDOUT_FILENO, msg, _strlen(msg));
+	return (0);
 }
