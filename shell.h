@@ -22,12 +22,12 @@
 
 /* Global environemnt */
 extern char **environ;
-<<<<<<< HEAD
 
-=======
+
+
 /* Global program name */
 /* Global history counter */
->>>>>>> 4f97502581c76a89da1fb56cc8cc6bfa9cf43d40
+
 /**
  * struct list_s - A new struct type defining a linked list.
  * @dir: A directory path.
