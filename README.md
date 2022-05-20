@@ -1,3 +1,2 @@
 # simple_shell
-This is a C-based Unix shell emulation.
-
+This is a simple UNIX command interpreter based on bash and Sh.
